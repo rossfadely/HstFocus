@@ -13,7 +13,7 @@ def run_rf(xtrain, xtest, ytrain, Nest):
     """
     rf = RandomForestRegressor(Nest)
     rf.fit(xtrain, ytrain)
-    return rf.predict(ytrain)
+    return rf.predict(xtest)
 
 def cv_loop(x, y, Nfolds=10, Nest=10):
     """
