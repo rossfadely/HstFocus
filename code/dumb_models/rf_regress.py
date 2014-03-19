@@ -26,8 +26,8 @@ def cv_loop(x, y, Nfolds=10, Nest=10):
         Ntest = np.ciel(y.size * frac)
         xtest = x[:Ntest]
         ytest = y[:Ntest]
-        xtrain = x[Ntext:]
-        ytrain = y[Ntext:]
+        xtrain = x[Ntest:]
+        ytrain = y[Ntest:]
         ypred = run_rf()
         scores[i] = np.median((ypred - ytest) ** 2)
     return scores
