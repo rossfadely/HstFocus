@@ -22,8 +22,7 @@ def cv_loop(x, y, Nfolds=10, Nest=10):
     scores = np.zeros(Nfolds)
     for i in range(Nfolds):
         inds = np.random.perturbation(y.size)
-        frac = 1. / Nfolds
-        Ntest = np.ciel(y.size * frac)
+        Ntest = np.ciel(y.size / Nfolds)
         trninds = inds[Ntest:]
         tstinds = inds[:Ntest]
         xtest = x[tstinds]
