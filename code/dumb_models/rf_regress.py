@@ -24,10 +24,12 @@ def cv_loop(x, y, Nfolds=10, Nest=10):
         inds = np.random.perturbation(y.size)
         frac = 1. / Nfolds
         Ntest = np.ciel(y.size * frac)
-        xtest = x[:Ntest]
-        ytest = y[:Ntest]
-        xtrain = x[Ntest:]
-        ytrain = y[Ntest:]
+        trninds = inds[Ntest:]
+        tstinds = inds[:Ntest]
+        xtest = x[tstinds]
+        ytest = y[tstinds]
+        xtrain = x[trninds]
+        ytrain = y[trninds]
         ypred = run_rf(xtrain, xtest, ytrain, Nest)
         scores[i] = np.median((ypred - ytest) ** 2)
     return scores
