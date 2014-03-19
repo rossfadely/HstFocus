@@ -21,7 +21,7 @@ def cv_loop(x, y, Nfolds=10, Nest=10):
     """
     scores = np.zeros(Nfolds)
     for i in range(Nfolds):
-        inds = np.random.perturbation(y.size)
+        inds = np.random.permutation(y.size)
         Ntest = np.ceil(y.size / Nfolds)
         trninds = inds[Ntest:]
         tstinds = inds[:Ntest]
@@ -30,17 +30,17 @@ def cv_loop(x, y, Nfolds=10, Nest=10):
         xtrain = x[trninds]
         ytrain = y[trninds]
         ypred = run_rf(xtrain, xtest, ytrain, Nest)
-        scores[i] = np.median((ypred - ytest) ** 2)
+        scores[i] = np.sqrt(np.median((ypred - ytest) ** 2))
     return scores
 
 if __name__ == '__main__':
 
-    temps = np.loadtxt('../../data/temps/UVIS1_linear.dat')
+    temps = np.loadtxt('../../data/temps/UVIS2_linear_trim-1.dat')
 
-    f = open('UVIS1FocusHistory.txt')
-    raw = f.readlines()[1:]
+    f = open('../../data/focus/UVIS2FocusHistory_trim-1.txt')
+    raw = f.readlines()[2:]
     f.close()
-    focii = np.array([l.split()[4] for l in raw])
+    focii = np.array([np.float(l.split()[4]) for l in raw])
 
-    scores = cv_loop(temps, focii)
-    print scores
+    scores = cv_loop(temps, focii, Nfolds=10)
+    print scores, np.mean(scores), np.std(scores)
