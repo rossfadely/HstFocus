@@ -1,11 +1,13 @@
 #
 # Trial for RF regression
 #
-
+from matplotlib import use
+use('Agg')
 import numpy as np
+import matplotlib.pyplot as pl
 
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.decomposition import FactorAnalysis
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
+from sklearn.decomposition import FactorAnalysis, KernelPCA, FastICA, PCA
 
 def run_rf(xtrain, xtest, ytrain, Nest):
     """
@@ -15,14 +17,14 @@ def run_rf(xtrain, xtest, ytrain, Nest):
     rf.fit(xtrain, ytrain)
     return rf.predict(xtest)
 
-def cv_loop(x, y, Nfolds=10, Nest=10):
+def cv_loop(x, y, Nfolds=10, Nest=10, cv_fraction=0.1):
     """
-    Run Nfold CV leaving out 1./Nfolds fraction
+    Run Nfold CV
     """
     scores = np.zeros(Nfolds)
     for i in range(Nfolds):
         inds = np.random.permutation(y.size)
-        Ntest = np.ceil(y.size / Nfolds)
+        Ntest = np.ceil(y.size * cv_fraction)
         trninds = inds[Ntest:]
         tstinds = inds[:Ntest]
         xtest = x[tstinds]
@@ -30,17 +32,25 @@ def cv_loop(x, y, Nfolds=10, Nest=10):
         xtrain = x[trninds]
         ytrain = y[trninds]
         ypred = run_rf(xtrain, xtest, ytrain, Nest)
-        scores[i] = np.sqrt(np.median((ypred - ytest) ** 2))
+        s = np.sort(np.sqrt((ypred - ytest) ** 2))
+        pl.plot(ytest, ypred-ytest, 'o', alpha=0.3)
+        scores[i] = s[np.ceil(ytest.size * 0.8)]
     return scores
 
 if __name__ == '__main__':
 
-    temps = np.loadtxt('../../data/temps/UVIS2_linear_trim-1.dat')
+    np.random.seed(100)
 
-    f = open('../../data/focus/UVIS2FocusHistory_trim-1.txt')
+    temps = np.loadtxt('../../data/temps/UVIS1_linear.dat')
+    f = open('../../data/focus/UVIS1FocusHistory.txt')
     raw = f.readlines()[2:]
     f.close()
     focii = np.array([np.float(l.split()[4]) for l in raw])
 
-    scores = cv_loop(temps, focii, Nfolds=10)
+    kpca = KernelPCA(n_components=3, kernel='linear')
+    x = kpca.fit_transform(temps)
+    x = np.hstack((temps, x))
+
+    scores = cv_loop(x[:, :], focii, Nfolds=20, cv_fraction=0.1)
     print scores, np.mean(scores), np.std(scores)
+    pl.savefig('../../plots/foo.png')
